@@ -8,5 +8,6 @@ Electrical schems
 4. Управление дренажным насосом через arduino и реле (/WoterPumpController)
 5. Управление скважинным насосом через esp12 и твердотельное реле SSR (/WoterMotorControllerDelegate)
 6. Onion Omega2 добавляю sd card holder (/OnionOmega2SdHolder)
+7. Переделка лазерного дальномера KRAFTOOL LD-40 на аккумулятор li-18650 (/ld40to18650)
 
 Подробности и описание приведены в wiki (https://github.com/qwinmen/schemnet/wiki)
