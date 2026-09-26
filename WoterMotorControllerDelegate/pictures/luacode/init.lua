@@ -1,4 +1,5 @@
 wifi.setmode(wifi.STATION) --1:Station mode, where the NodeMCU device joins an existing network
+wifi.sta.sethostname("ESP12-kissonV2")
 print('set mode=STATION (mode='..wifi.getmode()..')')
 print('MAC: ',wifi.sta.getmac())
 -- wifi config start:
