@@ -8,6 +8,7 @@ gpio.mode(gpio4, gpio.INT, gpio.PULLUP) --режим кнопки
 ds18b20.setup(gpio2)
 local addres = ds18b20.addrs()
 local sensors = #addres
+local debounce_timer = tmr.create() -- Создаем таймер для защиты от дребезга контактов (50-100 мс)
 
 --получить состояние контактов реле давления
 function getRelayState()
@@ -63,11 +64,17 @@ function sendNarod()
 	end
 end
 
---Таймер 1, опрос реле давления
-relay_timer = tmr.create()
-relay_timer:alarm(2000, tmr.ALARM_AUTO, function()
-    getRelayState()
+-- Колбэк прерывания
+gpio.trig(gpio4, "both", function(level, when)
+    -- Как только контакт двинулся, запускаем/перезапускаем таймер на 200 мс
+    -- Опрос состояния произойдет только после того, как контакты успокоятся
+    debounce_timer:stop()
+    debounce_timer:alarm(200, tmr.ALARM_SINGLE, function()
+        getRelayState()
+    end)
 end)
+
+getRelayState()-- Первичный опрос при старте платы, чтобы сразу выставить нужное состояние
 
 --Таймер 0, опрос датчика температуры
 narod_timer = tmr.create()
