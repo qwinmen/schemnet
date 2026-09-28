@@ -1,42 +1,22 @@
---------------------------------------------------------------------------------
--- DS18B20 one wire module for NODEMCU
--- NODEMCU TEAM
--- LICENCE: http://opensource.org/licenses/MIT
--- Vowstar <vowstar@nodemcu.com>
--- 2015/02/14 sza2 <sza2trash@gmail.com> Fix for negative values
---------------------------------------------------------------------------------
-
--- Set module name as parameter of require
-local modname = ...
 local M = {}
-_G[modname] = M
---------------------------------------------------------------------------------
--- Local used variables
---------------------------------------------------------------------------------
--- DS18B20 dq pin
+
+-- Константы единиц измерения
+M.C = 0
+M.F = 1
+M.K = 2
+
+-- Локальные переменные модуля
 local pin = nil
--- DS18B20 default pin
 local defaultPin = 4
---------------------------------------------------------------------------------
--- Local used modules
---------------------------------------------------------------------------------
--- Table module
+
+-- Локальные ссылки на глобальные модули для ускорения работы
 local table = table
--- String module
 local string = string
--- One wire module
 local ow = ow
--- Timer module
 local tmr = tmr
--- Limited to local environment
-setfenv(1,M)
---------------------------------------------------------------------------------
--- Implementation
---------------------------------------------------------------------------------
-C = 0
-F = 1
-K = 2
-function setup(dq)
+
+-- Реализация функций модуля
+function M.setup(dq)
   pin = dq
   if(pin == nil) then
     pin = defaultPin
@@ -44,12 +24,12 @@ function setup(dq)
   ow.setup(pin)
 end
 
-function addrs()
-  setup(pin)
-  tbl = {}
+function M.addrs()
+  M.setup(pin)
+  local tbl = {}
   ow.reset_search(pin)
   repeat
-    addr = ow.search(pin)
+    local addr = ow.search(pin)
     if(addr ~= nil) then
       table.insert(tbl, addr)
     end
@@ -59,13 +39,13 @@ function addrs()
   return tbl
 end
 
-function readNumber(addr, unit)
-  result = nil
-  setup(pin)
-  flag = false
+function M.readNumber(addr, unit)
+  local result = nil
+  M.setup(pin)
+  
   if(addr == nil) then
     ow.reset_search(pin)
-    count = 0
+    local count = 0
     repeat
       count = count + 1
       addr = ow.search(pin)
@@ -76,57 +56,52 @@ function readNumber(addr, unit)
   if(addr == nil) then
     return result
   end
-  crc = ow.crc8(string.sub(addr,1,7))
+  
+  local crc = ow.crc8(string.sub(addr,1,7))
   if (crc == addr:byte(8)) then
     if ((addr:byte(1) == 0x10) or (addr:byte(1) == 0x28)) then
-      -- print("Device is a DS18S20 family device.")
       ow.reset(pin)
       ow.select(pin, addr)
       ow.write(pin, 0x44, 1)
-      -- tmr.delay(1000000)
-      present = ow.reset(pin)
+      
+      local present = ow.reset(pin)
       ow.select(pin, addr)
       ow.write(pin,0xBE,1)
-      -- print("P="..present)
-      data = nil
-      data = string.char(ow.read(pin))
+      
+      local data = string.char(ow.read(pin))
       for i = 1, 8 do
         data = data .. string.char(ow.read(pin))
       end
-      -- print(data:byte(1,9))
+      
       crc = ow.crc8(string.sub(data,1,8))
-      -- print("CRC="..crc)
       if (crc == data:byte(9)) then
-        t = (data:byte(1) + data:byte(2) * 256)
+        local t = (data:byte(1) + data:byte(2) * 256)
         if (t > 32767) then
           t = t - 65536
         end
-        if(unit == nil or unit == C) then
+        if(unit == nil or unit == M.C) then
           t = t * 625
-        elseif(unit == F) then
+        elseif(unit == M.F) then
           t = t * 1125 + 320000
-        elseif(unit == K) then
+        elseif(unit == M.K) then
           t = t * 625 + 2731500
         else
           return nil
         end
-        -- t = t / 10000
-        -- print("Temperature="..t1.."."..t2.." Centigrade")
-        -- result = t1.."."..t2
         return t
       end
       tmr.wdclr()
     else
-		print("Device family is not recognized.")
+      print("Device family is not recognized.")
     end
   else
-	print("CRC is not valid!")
+    print("CRC is not valid!")
   end
   return result
 end
 
-function read(addr, unit)
-  t = readNumber(addr, unit)
+function M.read(addr, unit)
+  local t = M.readNumber(addr, unit)
   if (t == nil) then
     return nil
   else
@@ -134,5 +109,5 @@ function read(addr, unit)
   end
 end
 
--- Return module table
+-- Возвращаем таблицу модуля
 return M
