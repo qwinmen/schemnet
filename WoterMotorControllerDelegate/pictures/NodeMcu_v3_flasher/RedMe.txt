@@ -1,0 +1,7 @@
+https://nodemcu-build.com/
+Файлы с прошивкой
+Содержат модули
+includes the following modules: file, gpio, net, node, ow, tmr, uart, wifi.
+
+build created on 2018-04-22 15:23 powered by Lua 5.1.4 on SDK 2.2.1(cfd48f3)
+две версии прошивки – float и integer. Первая позволяет работать с дробными числами, а вторая с только с целочисленными (но и размер у нее меньше). Для обучающих занятий нас вполне устроит вариант integer.
